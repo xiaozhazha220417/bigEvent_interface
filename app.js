@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: false }))
 // * 1.4 初始化路由相关的文件夹 - 结束
 
 // * 2.5.5.1 导入用户名密码的校验规则对象
-const joi = require('@hapi/joi')
+const joi = require('joi')
 
 // * 2.4 优化 res.send() 代码 - 开始
 // 响应数据的中间件
@@ -39,6 +39,16 @@ app.use((req, res, next) => {
     next()
 })
 // * 2.4 优化 res.send() 代码 - 结束
+
+// * 2.6.5 配置解析 Token 的中间件
+// 导入 token 秘钥模块
+const config = require('./config')
+// 解析 token 的中间件
+const expressJwt = require('express-jwt')
+// 使用 .unless({path:[/^\/api\//]}) 指定那些借口不需要进行 token 验证
+app.use(
+    expressJwt({ secret: config.jwtSecretKey }).unless({ path: [/^\/api\//] })
+)
 
 // * 1.5 初始化用户路由模块 - 开始
 // 步骤一：在 /router/user.js 中操作
@@ -59,7 +69,7 @@ app.use('/api', userRouter)
 // 步骤二：新建 /db/index.js 文件，在文件中创建数据库的链接对象
 // * 2.2 安装并配置mysql模块 - 结束
 
-// * 2.3.0 实现步骤 - 开始
+// * 2.3.0 注册 实现步骤 - 开始
 // 1、检测表单数据是否合法
 // 2、检测用户名是否被占用
 // 3、对密码进行加密处理
@@ -68,13 +78,30 @@ app.use('/api', userRouter)
 // * 2.3.2 操作在 /router_handler/user.js 中
 // * 2.3.3 操作在 /router_handler/user.js 中
 // * 2.3.4 操作在 /router_handler/user.js 中
-// * 2.3.0 实现步骤 - 结束
+// * 2.3.0 注册 实现步骤 - 结束
+
+// * 2.6.0 登录 实现步骤 - 开始
+// 1、检测表单数据是否合法
+// 2、根据用户名查询用户的数据
+// 3、判断用户输入的密码是否正确
+// 4、生成jwt的token字符串
+// * 2.6.1 操作在 /router/user.js 中
+// * 2.6.2 操作在 /router_handler/user.js 中
+// * 2.6.3 操作在 /router_handler/user.js 中
+// * 2.6.4 操作在 /router_handler/user.js 中
+// * 2.6.5 配置解析 Token 的中间件
+// * 2.6.0 登录 实现步骤 - 结束
 
 // * 2.5.5.2 捕获全局的错误级别的中间件
+// * 2.6.5.3 捕获 token 验证的错误，并处理错误
 // 错误中间件
 app.use((err, req, res, next) => {
     // 数据验证失败
     if (err instanceof joi.ValidationError) return res.cc(err)
+
+    // 捕获身份认证失败的错误
+    if (err.name === 'UnauthorizedError') return res.cc('身份认证失败！')
+
     // 未知错误
     res.cc(err)
 })

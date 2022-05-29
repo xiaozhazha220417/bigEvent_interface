@@ -6,6 +6,11 @@
 const db = require('../db/index')
 // * 2.3.3.2 导入 密码加密模块
 const bcrypt = require('bcryptjs')
+// * 2.6.4.3 导入 生成token模块
+const jwt = require('jsonwebtoken')
+// * 2.6.4.5 导入 token秘钥模块
+const config = require('../config')
+
 // 注册用户的处理函数
 module.exports.regUser = (req, res) => {
     // * 2.3.1 检测表单数据是否合法 - 开始
@@ -71,5 +76,45 @@ module.exports.regUser = (req, res) => {
 
 // 登录的处理函数
 module.exports.login = (req, res) => {
-    res.send('login ok')
+    // 1、接收表单数据
+    const userinfo = req.body
+    // 2、定义sql语句
+    const sql = `select * from ev_users where username = ?`
+    // 3、执行sql语句，查询用户数据
+    db.query(sql, [userinfo.username], (err, results) => {
+        // 执行sql语句失败
+        if (err) return res.cc(err)
+        // 执行 sql 语句成功，但是查询不到数据的条数
+        if (results.length !== 1) return res.cc('登陆失败')
+
+        // todo:判断用户输入的登录密码是否和数据库中的密码一致
+        // console.log(results)
+        // * 2.6.3 判断用户输入的密码是否正确
+        // 拿着用户输入的密码,和数据库中存储的密码进行对比
+        const compareResult = bcrypt.compareSync(
+            userinfo.password,
+            results[0].password
+        )
+        // console.log(compareResult)
+        // 如果对比结果等于false,则证明用户输入的密码错误
+        if (!compareResult) return res.cc('登录失败')
+
+        // todo:登录成功，生成token，生成token前，要去除 密码和头像的值
+        // * 2.6.4 生成 JWT 的 Token 字符串
+        // 安全考虑，需要把密码和头像 去除后 在生成 token
+        // ...results[0],就是浅拷贝对象，后面再加上的属性，表示覆盖扩展运算符弄出来password属性和user_pic属性
+        const user = { ...results[0], password: '', user_pic: '' }
+        // console.log(user);
+        // 生成 token 字符串
+        const tokenStr = jwt.sign(user, config.jwtSecretKey, {
+            // token 有效期为10小时
+            expiresIn: config.expiresIn,
+        })
+        // * 2.6.4.6 将生成的token字符串响应给客户端
+        res.send({
+            status: 0,
+            message: '登录成功',
+            token: 'Bearer ' + tokenStr,
+        })
+    })
 }

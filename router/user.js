@@ -19,7 +19,8 @@ const { reg_login_schema } = require('../schema/user')
 router.post('/register', expressJoi(reg_login_schema), userHandler.regUser)
 
 // 登录的 路由
-router.post('/login', userHandler.login)
+// * 2.6.1 检测表单数据是否合法
+router.post('/login', expressJoi(reg_login_schema), userHandler.login)
 // * 1.6 步骤二 - 结束
 // 共享路由
 module.exports = router
