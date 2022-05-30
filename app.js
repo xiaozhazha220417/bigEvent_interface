@@ -1,3 +1,12 @@
+/* 
+3、个人中心
+3.1、获取用户的基本信息
+3.1.0、实现步骤
+    1.初始化 路由 模块
+    2.初始化 路由处理函数 模块
+    3.获取用户的基本信息
+*/
+
 // * 1.1 创建项目服务器-开始
 // 步骤一：新建 api_server 文件夹作为项目根目录，运行 npm init -y 初始化 包管理配置文件
 // 步骤二：安装 4.17.1 的express的包
@@ -55,6 +64,9 @@ app.use(
 // 步骤二：导入并注册用户路由模块
 const userRouter = require('./router/user')
 app.use('/api', userRouter)
+
+const userinfoRouter = require('./router/userinfo')
+app.use('/my', userinfoRouter)
 // * 1.5 初始化用户路由模块 - 结束
 
 // * 1.6 抽离用户路由模块中的处理函数 - 开始
@@ -99,6 +111,7 @@ app.use((err, req, res, next) => {
     // 数据验证失败
     if (err instanceof joi.ValidationError) return res.cc(err)
 
+    // * 2.6.5 捕获并处理 Token 认证失败后的错误
     // 捕获身份认证失败的错误
     if (err.name === 'UnauthorizedError') return res.cc('身份认证失败！')
 
