@@ -8,6 +8,8 @@ const joi = require('joi')
  * max(length) 最大长度
  * required() 值是必填项，不能为undefined
  * pattern(正则表达式) 值必须符合正则表达式的规则
+ * integer() 整数
+ * email() 邮箱的验证规则
  */
 
 // todo：登录和注册的表单校验规则
